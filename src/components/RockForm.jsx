@@ -25,24 +25,37 @@ export const RockForm = ({ fetchRocks }) => {
     useEffect(() => {
         fetchTypes()
     }, [])
-
+    
+    console.log(rock)
 
     const collectRock = async (evt) => {
-        evt.preventDefault()
-
-        await fetch("http://localhost:8000/rocks", {
-            method: "POST",
-            headers: {
-                "Authorization": `Token ${JSON.parse(localStorage.getItem("rock_token")).token}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(rock)
-        })
-
-        await fetchRocks()
-
-        navigate("/allrocks")
-    }
+        evt.preventDefault();
+    
+        try {
+            const response = await fetch("http://localhost:8000/rocks", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Token ${JSON.parse(localStorage.getItem("rock_token")).token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(rock)
+            });
+    
+            const data = await response.json();
+            console.log("API Response:", data); // Log API response to check for clues
+    
+            if (!response.ok) {
+                throw new Error(`Error: ${data.detail || response.statusText}`);
+            }
+    
+            await fetchRocks();
+    
+            navigate("/allrocks");
+    
+        } catch (error) {
+            console.error("API Error:", error);
+        }
+    };
 
     return (
         <main className="container--login">
@@ -75,7 +88,7 @@ export const RockForm = ({ fetchRocks }) => {
                         <select id="type" className="form-control"
                             onChange={e => {
                                 const copy = { ...rock }
-                                copy.type_id = parseInt(e.target.value)
+                                copy.typeId = parseInt(e.target.value)
                                 updateRockProps(copy)
                             }}>
                             <option value={0}>- Select a type -</option>
